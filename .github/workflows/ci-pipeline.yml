@@ -1,0 +1,46 @@
+name: Mini CI/CD Testing Pipeline
+
+# 1. Jalankan skrip ketika ada perubahan kode (Push ke main)
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # A. Ambil kode dari repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # B. Siapkan lingkungan Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    # C. Install dependencies (Pytest)
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # D. Jalankan Testing & Simpan Log ke file
+    - name: Run Tests with Pytest
+      run: |
+        # Menjalankan test dan menyimpan outputnya ke file report.txt
+        pytest -v > test_report.log
+        # Menampilkan output juga di console agar terlihat
+        cat test_report.log
+
+    # E. Kirim Hasil Test (Upload sebagai Artifact)
+    # Ini memenuhi syarat "Hasil test otomatis dikirimkan (log/report)"
+    - name: Upload Test Report
+      if: always() # Tetap jalankan meskipun test gagal
+      uses: actions/upload-artifact@v3
+      with:
+        name: laporan-hasil-test
+        path: test_report.log
